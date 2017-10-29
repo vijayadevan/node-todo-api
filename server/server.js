@@ -1,42 +1,28 @@
-const mongoose = require('mongoose');
+var express = require('express');
+var bodyParser = require('body-parser');
 
-mongoose.Promise = global.Promise;
+var { mongoose } = require('./db/mongoose');
+var { User } = require('./models/user');
+var { Todo } = require('./models/todo');
 
-mongoose.connect('mongodb://localhost:27017/TodoApp', {
-    useMongoClient: true
+var Port = process.env.Port || 3000;
+
+var app = express();
+
+app.use(bodyParser.json());
+
+app.post('/todos', (req, res) => {
+    var todo = new Todo({
+        text: req.body.text
+    });
+
+    todo.save().then((doc) => {
+        res.send(doc);
+    }, (e) => {
+        res.status(400).send(e);
+    });
 });
 
-var Todo = mongoose.model('Todo', {
-    text: {
-        type: String
-    },
-    completed: {
-        type: Boolean
-    },
-    completedAt: {
-        type: Number
-    }
-});
-
-var userReg = mongoose.model('Users', {
-    userName: {
-        type: String
-    },
-    email: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 1
-    }
-});
-
-var userRegister = new userReg({
-email: '    vijay@example.com  '
-});
-
-userRegister.save().then((error, doc) => {
-    if (error) {
-        return console.log(error);
-    }
-    console.log(doc);
+app.listen(Port, () => {
+    console.log(`Started on port ${Port}`);
 });
